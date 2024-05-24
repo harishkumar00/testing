@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.rentlymeari.ui.theme.MeariTheme
 
 class MeariActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,12 +17,14 @@ class MeariActivity : ComponentActivity() {
     enableEdgeToEdge()
 
     setContent {
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .background(Color.Red)
-      ){
+      MeariTheme {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Red)
+        ){
 
+        }
       }
     }
   }
