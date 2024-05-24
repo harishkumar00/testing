@@ -3,5 +3,17 @@
     <activity
       android:configChanges="keyboardHidden|orientation|screenSize"
       android:name=".MeariActivity" />
+
+    <!-- TODO::Replace the hardcoded keys-->
+    <meta-data
+      android:name="MEARI_APPKEY"
+      android:value="33c1ecef4562459eb2cb41c8a8fae4f8" />
+    <meta-data
+      android:name="MEARI_SECRET"
+      android:value="3ac44f1f8e4b4c54b724b0ca034c141f" />
+
+    <service
+      android:name="org.eclipse.paho.android.service.MqttService"
+      android:priority="1000" />
   </application>
 </manifest>
