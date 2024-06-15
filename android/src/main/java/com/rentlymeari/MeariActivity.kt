@@ -28,14 +28,7 @@ class MeariActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
-    Log.i("harish", "first line")
-    val deviceId = intent.getStringExtra("deviceId")
-    Log.i("harish", "second line")
-
-
-    // MeariSdk.init(this, MeariMQTTCallback())
-    Log.i("harish", "third line")
-
+    MeariSdk.init(this, MeariMQTTCallback())
     if (BuildConfig.DEBUG) {
       meariLog.createlibrarylog()
       meariLog.getInstance().setlevel(0)
@@ -43,12 +36,10 @@ class MeariActivity : ComponentActivity() {
       Log.i("harish", "here")
     }
 
-    Log.i("harish", "inside if line")
-
     // Connect Meari MQTT service
     MeariUser.getInstance().connectMqttServer(application)
 
-    Log.i("harish", "last line")
+    val deviceId = intent.getStringExtra("deviceId")
 
     setContent {
 
