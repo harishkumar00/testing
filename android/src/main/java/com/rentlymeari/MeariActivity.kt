@@ -21,7 +21,6 @@ import kotlinx.coroutines.delay
 class MeariActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    enableEdgeToEdge()
 
     MeariSdk.init(this, MeariMQTTCallback())
     if (BuildConfig.DEBUG) {

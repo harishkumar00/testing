@@ -21,7 +21,7 @@ fun MeariTheme(
   if (!view.isInEditMode) {
     SideEffect {
       val window = (view.context as Activity).window
-      window.statusBarColor = LocalColor.Monochrome.White.toArgb()
+      window.statusBarColor = LocalColor.Monochrome.Black.toArgb()
       WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
     }
   }
