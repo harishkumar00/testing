@@ -1,7 +1,9 @@
 package com.rentlymeari.ui.theme
 
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
+import com.rentlymeari.R
 
 object LocalFont {
   object FontSize {
@@ -24,10 +26,10 @@ object LocalFont {
   }
 
   object FontFamily {
-    val light = FontFamily()
-    val regular = FontFamily()
-    val medium = FontFamily()
-    val semiBold = FontFamily()
-    val bold = FontFamily()
+    val light = FontFamily(Font(R.font.quicksand_light))
+    val regular = FontFamily(Font(R.font.quicksand_regular))
+    val medium = FontFamily(Font(R.font.quicksand_medium))
+    val semiBold = FontFamily(Font(R.font.quicksand_semi_bold))
+    val bold = FontFamily(Font(R.font.quicksand_bold))
   }
 }
