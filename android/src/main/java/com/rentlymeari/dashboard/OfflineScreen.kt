@@ -58,7 +58,7 @@ fun OfflineScreen(
       Label(
         modifier = Modifier
           .padding(start = 10.dp, bottom = 25.dp),
-        title = "Check power source to doorbell, by pressing the button on the front of the doorbell. If the power is connected properly, you will hear a chime. If you do not hear a chime, recharge the doorbell.",
+        title = "Check power source to doorbell, by pressing the button on the front of the doorbell. If the power is connected properly, you will hear a chime.",
         white = true,
         maxLines = 6
       )
@@ -79,8 +79,8 @@ fun OfflineScreen(
 
       Button(
         modifier = Modifier
-          .width(180.dp)
-          .height(70.dp)
+          .width(165.dp)
+          .height(80.dp)
           .padding(bottom = 20.dp),
         id = "tapToRetry",
         title = "Tap to retry",

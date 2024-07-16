@@ -1,11 +1,14 @@
 package com.rentlymeari.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +37,7 @@ fun Button(
   xl24: Boolean = false,
   // Color
   primary: Boolean = false,
+  secondary: Boolean = false,
   white: Boolean = false,
   grey: Boolean = false,
   black: Boolean = false,
@@ -52,6 +56,7 @@ fun Button(
 
   val buttonColor = when {
     primary -> LocalColor.Primary.Medium
+    secondary -> Color(0xFFf37787)
     white -> LocalColor.Monochrome.White
     grey -> LocalColor.Monochrome.LightGrey
     black -> LocalColor.Monochrome.Black

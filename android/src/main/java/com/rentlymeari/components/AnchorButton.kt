@@ -29,6 +29,7 @@ fun AnchorButton(
   xl24: Boolean = false,
   // Color
   primary: Boolean = false,
+  black: Boolean = false,
   // Font Weight
   light: Boolean = false,
   medium: Boolean = false,
@@ -47,6 +48,7 @@ fun AnchorButton(
 
   val textColor = when {
     primary -> LocalColor.Primary.Light
+    black -> LocalColor.Monochrome.Black
     else -> LocalColor.Primary.Light
   }
 

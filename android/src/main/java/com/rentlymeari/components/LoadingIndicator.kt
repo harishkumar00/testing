@@ -18,6 +18,8 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import com.rentlymeari.ui.theme.LocalColor
 
@@ -30,33 +32,42 @@ fun LoadingIndicator(
 ) {
   val context = LocalContext.current
 
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(1F)
-      .alpha(1f)
-      .background(Color.Transparent)
-      .pointerInteropFilter { true },
-    contentAlignment = Alignment.Center
+  Dialog(
+    onDismissRequest = {
+
+    },
+    properties = DialogProperties(
+      usePlatformDefaultWidth = false
+    )
   ) {
-    Row(
+    Box(
       modifier = Modifier
-        .fillMaxWidth(0.9f)
-        .fillMaxHeight(0.16f)
-        .background(LocalColor.Monochrome.White),
-      verticalAlignment = Alignment.CenterVertically
+        .fillMaxSize()
+        .zIndex(1F)
+        .alpha(1f)
+        .background(Color.Transparent)
+        .pointerInteropFilter { true },
+      contentAlignment = Alignment.Center
     ) {
-      CircularProgressIndicator(
+      Row(
         modifier = Modifier
-          .padding(horizontal = 20.dp),
-        color = color,
-        strokeWidth = size
-      )
-      Label(
-        title = "Loading..",
-        semiBold = true,
-        black = true
-      )
+          .fillMaxWidth(0.9f)
+          .fillMaxHeight(0.1f)
+          .background(LocalColor.Monochrome.White),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        CircularProgressIndicator(
+          modifier = Modifier
+            .padding(horizontal = 20.dp),
+          color = color,
+          strokeWidth = size
+        )
+        Label(
+          title = "Loading..",
+          semiBold = true,
+          black = true
+        )
+      }
     }
   }
 }

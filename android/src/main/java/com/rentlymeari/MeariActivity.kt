@@ -3,7 +3,6 @@ package com.rentlymeari
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +41,7 @@ class MeariActivity : ComponentActivity() {
 
       LaunchedEffect(Unit) {
         val doorbells = Meari.loginAndFetchDoorbells()
-        delay(10000)
+        delay(10000) // TODO: remove this
         cameraInfo.value = doorbells?.doorBells?.find {
           it.deviceID == deviceId
         }
