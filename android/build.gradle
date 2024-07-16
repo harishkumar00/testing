@@ -90,6 +90,46 @@ android {
     sourceCompatibility JavaVersion.VERSION_17
     targetCompatibility JavaVersion.VERSION_17
   }
+
+  packagingOptions {
+    pickFirst 'lib/arm64-v8a/libAVAPIs.so'
+    pickFirst 'lib/arm64-v8a/libcurl.so'
+    pickFirst 'lib/arm64-v8a/libfaac.so'
+    pickFirst 'lib/arm64-v8a/libgpac.so'
+    pickFirst 'lib/arm64-v8a/libhv.so'
+    pickFirst 'lib/arm64-v8a/libIOTCAPIs.so'
+    pickFirst 'lib/arm64-v8a/libmp4wraper.so'
+    pickFirst 'lib/arm64-v8a/libmrav.so'
+    pickFirst 'lib/arm64-v8a/libmrble.so'
+    pickFirst 'lib/arm64-v8a/libmrplayer.so'
+    pickFirst 'lib/arm64-v8a/libPPCS_API.so'
+    pickFirst 'lib/arm64-v8a/libppr.so'
+    pickFirst 'lib/arm64-v8a/libppsaudio.so'
+    pickFirst 'lib/arm64-v8a/libppsdk.so'
+    pickFirst 'lib/arm64-v8a/libremix.so'
+    pickFirst 'lib/arm64-v8a/libsoundtouch.so'
+    pickFirst 'lib/arm64-v8a/libwebrtc_apms.so'
+    pickFirst 'lib/arm64-v8a/libyuv.so'
+
+    pickFirst 'lib/armeabi-v7a/libAVAPIs.so'
+    pickFirst 'lib/armeabi-v7a/libcurl.so'
+    pickFirst 'lib/armeabi-v7a/libfaac.so'
+    pickFirst 'lib/armeabi-v7a/libgpac.so'
+    pickFirst 'lib/armeabi-v7a/libhv.so'
+    pickFirst 'lib/armeabi-v7a/libIOTCAPIs.so'
+    pickFirst 'lib/armeabi-v7a/libmp4wraper.so'
+    pickFirst 'lib/armeabi-v7a/libmrav.so'
+    pickFirst 'lib/armeabi-v7a/libmrble.so'
+    pickFirst 'lib/armeabi-v7a/libmrplayer.so'
+    pickFirst 'lib/armeabi-v7a/libPPCS_API.so'
+    pickFirst 'lib/armeabi-v7a/libppr.so'
+    pickFirst 'lib/armeabi-v7a/libppsaudio.so'
+    pickFirst 'lib/armeabi-v7a/libppsdk.so'
+    pickFirst 'lib/armeabi-v7a/libremix.so'
+    pickFirst 'lib/armeabi-v7a/libsoundtouch.so'
+    pickFirst 'lib/armeabi-v7a/libwebrtc_apms.so'
+    pickFirst 'lib/armeabi-v7a/libyuv.so'
+  }
 }
 
 repositories {
