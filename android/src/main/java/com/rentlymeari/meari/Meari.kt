@@ -3,13 +3,11 @@ package com.rentlymeari.meari
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Environment
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.meari.sdk.MeariDeviceController
 import com.meari.sdk.MeariUser
 import com.meari.sdk.bean.CameraInfo
@@ -23,16 +21,21 @@ import com.meari.sdk.callback.ILogoutCallback
 import com.meari.sdk.callback.IResultCallback
 import com.meari.sdk.callback.ISetDeviceParamsCallback
 import com.meari.sdk.listener.MeariDeviceListener
+import com.meari.sdk.listener.MeariDeviceRecordMp4Listener
 import com.meari.sdk.listener.MeariDeviceTalkVolumeListener
 import com.meari.sdk.mqtt.MqttMangerUtils
 import com.ppstrong.ppsplayer.PPSGLSurfaceView
+import com.rentlymeari.MeariApplication
 import com.rentlymeari.meari.CommonUtils.getTalkType
+import com.rentlymeari.util.PermissionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 import kotlin.coroutines.resume
+
 
 object Meari {
 
@@ -215,15 +218,7 @@ object Meari {
       Manifest.permission.READ_PHONE_STATE
     )
 
-    fun checkPermissions(context: Context, permissions: Array<String>): List<String> {
-      return permissions.filter {
-        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
-      }
-    }
-
-    val permissionsToRequest = checkPermissions(context.applicationContext, permissions)
-
-    if (permissionsToRequest.isEmpty()) {
+    if (PermissionHandler.arePermissionsGranted(context, permissions)) {
       isLoading.value = true
       MeariUser.getInstance().controller.startVoiceTalk(
         talkType,
@@ -253,9 +248,9 @@ object Meari {
           }
         })
     } else {
-      ActivityCompat.requestPermissions(
+      PermissionHandler.checkAndRequestPermissions(
         context as Activity,
-        permissionsToRequest.toTypedArray(),
+        permissions,
         200
       )
     }
@@ -296,86 +291,23 @@ object Meari {
     })
   }
 
-  fun setMotionEnable(
-    enable: Int,
-    sensitivityLevel: Int?,
-    isLoading: MutableState<Boolean>,
-    isMotionDetectionEnabled: MutableState<Boolean>,
-    motionSensitivityLevel: MutableState<Int?>
-  ) {
-    // Enable: 0-Off, 1-On
-    if (sensitivityLevel != null) {
-      isLoading.value = true
-      MeariUser.getInstance().setMotionDetection(
-        enable,
-        sensitivityLevel,
-        object : ISetDeviceParamsCallback {
-          override fun onSuccess() {
-            isMotionDetectionEnabled.value = when (enable) {
-              1 -> true
-              else -> false
-            }
-            motionSensitivityLevel.value = sensitivityLevel
-            isLoading.value = false
-            Log.i("Doorbell", "Motion detection set Success")
-          }
 
-          override fun onFailed(i: Int, s: String) {
-            isLoading.value = false
-            Log.i("Doorbell", "Failure in Motion Detection set: $i $s")
-          }
-        })
-    }
+  fun localRecording(
+    type: Int,
+    duration: Int
+  ) {
+    MeariUser.getInstance()
+      .setPlaybackRecordVideo(type, duration, object : ISetDeviceParamsCallback {
+        override fun onSuccess() {
+          Log.i("Harish", "success")
+        }
+
+        override fun onFailed(errorCode: Int, errorMsg: String) {
+          Log.i("Harish", "failed $errorCode $errorMsg")
+        }
+      })
   }
 
-  fun setDayNightMode(
-    mode: MutableState<Int?>,
-    newMode: Int?,
-    isLoading: MutableState<Boolean>,
-  ) {
-    // Mode: 0-Auto, 1-Day, 2-Night
-    if (newMode != null) {
-      isLoading.value = true
-      MeariUser.getInstance()
-        .setDayNightMode(newMode, object : ISetDeviceParamsCallback {
-          override fun onSuccess() {
-            mode.value = newMode
-            isLoading.value = false
-            Log.i("Doorbell", "Day/Night Mode set success")
-          }
-
-          override fun onFailed(i: Int, s: String) {
-            isLoading.value = false
-            Log.i("Doorbell", "Failure in Day/Night Mode set: $i $s")
-          }
-        })
-    }
-  }
-
-  fun setSDCardRecordType(
-    type: MutableState<Int?>,
-    newMode: Int?,
-    isLoading: MutableState<Boolean>,
-    duration: Int = 30
-  ) {
-    // type: 0-Event Recording, 1-All Day Recording
-    if (newMode != null) {
-      isLoading.value = true
-      MeariUser.getInstance()
-        .setPlaybackRecordVideo(newMode, duration, object : ISetDeviceParamsCallback {
-          override fun onSuccess() {
-            type.value = newMode
-            isLoading.value = false
-            Log.i("Doorbell", "Set Playback Record Video success")
-          }
-
-          override fun onFailed(errorCode: Int, errorMsg: String) {
-            isLoading.value = false
-            Log.i("Doorbell", "Set Playback Record Video failure $errorCode $errorMsg")
-          }
-        })
-    }
-  }
 
   fun logout() {
     MeariUser.getInstance().logout(object : ILogoutCallback {
@@ -388,6 +320,60 @@ object Meari {
 
       override fun onError(code: Int, error: String) {
         Log.i("Doorbell", "Failed in Doorbell logout. $code $error")
+      }
+    })
+  }
+
+  fun screenShot() {
+
+    val file: File? = MeariApplication.getAppContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+    if (file != null){
+      val path = file.absolutePath + File.separator
+      MeariUser.getInstance().controller.snapshot(path, object : MeariDeviceListener {
+        override fun onSuccess(s: String) {
+          Log.i("Harish", "screenshot success")
+        }
+
+        override fun onFailed(s: String) {
+          Log.i("Harish", "screenshot failed $s")
+        }
+      })
+    } else {
+      Log.i("Doorbell Screenshot", "file is null")
+    }
+  }
+
+  fun startRecording() {
+    val path: String =
+      Environment.getExternalStorageDirectory().absolutePath + "/" + System.currentTimeMillis() + ".mp4"
+    MeariUser.getInstance().controller.startRecordMP4(path, object : MeariDeviceListener {
+      override fun onSuccess(s: String) {
+        Log.i("Harish", "recording success")
+      }
+
+      override fun onFailed(s: String) {
+        Log.i("Harish", "recording failed $s")
+
+      }
+    }, MeariDeviceRecordMp4Listener { i ->
+      if (i > 0) {
+        Log.i("Harish", "recording success toast $i")
+      } else {
+        Log.i("Harish", "recording failed toast $i")
+      }
+    })
+  }
+
+  fun stopRecording() {
+    MeariUser.getInstance().controller.stopRecordMP4(object : MeariDeviceListener {
+      override fun onSuccess(s: String) {
+        Log.i("Harish", "stop success")
+      }
+
+      override fun onFailed(s: String) {
+        Log.i("Harish", "stop failure")
+
       }
     })
   }
@@ -434,6 +420,65 @@ object Meari {
         Log.i("Doorbell", "Stop Preview Failure $errorMsg")
       }
     })
+  }
+
+  fun changeChime(
+    newMode: String?,
+    isWirelessChimeEnabled: MutableState<Int?>,
+    isMechanicalChimeEnabled: MutableState<Int?>,
+    isLoading: MutableState<Boolean>
+  ) {
+    // Enable -> 0 - Off, 1 - On
+    if (newMode != null) {
+      isLoading.value = true
+      if (newMode == "wireless") {
+        MeariUser.getInstance().setMechanicalChimeEnable(0, object : ISetDeviceParamsCallback {
+          override fun onSuccess() {
+            MeariUser.getInstance().setWirelessChimeEnable(1, object : ISetDeviceParamsCallback {
+              override fun onSuccess() {
+                isWirelessChimeEnabled.value = 1
+                isMechanicalChimeEnabled.value = 0
+                isLoading.value = false
+                Log.i("Doorbell", "Wireless chime set Success")
+              }
+
+              override fun onFailed(errorCode: Int, errorMsg: String) {
+                isLoading.value = false
+                Log.i("Doorbell", "Failed to set wireless chime $errorCode $errorMsg")
+              }
+            })
+          }
+
+          override fun onFailed(errorCode: Int, errorMsg: String) {
+            isLoading.value = false
+            Log.i("Doorbell", "Failed to set mechanical chime $errorCode $errorMsg")
+          }
+        })
+      } else {
+        MeariUser.getInstance().setWirelessChimeEnable(0, object : ISetDeviceParamsCallback {
+          override fun onSuccess() {
+            MeariUser.getInstance().setMechanicalChimeEnable(1, object : ISetDeviceParamsCallback {
+              override fun onSuccess() {
+                isWirelessChimeEnabled.value = 0
+                isMechanicalChimeEnabled.value = 1
+                isLoading.value = false
+                Log.i("Doorbell", "Mechanical chime set Success")
+              }
+
+              override fun onFailed(errorCode: Int, errorMsg: String) {
+                isLoading.value = false
+                Log.i("Doorbell", "Failed to set mechanical chime $errorCode $errorMsg")
+              }
+            })
+          }
+
+          override fun onFailed(errorCode: Int, errorMsg: String) {
+            isLoading.value = false
+            Log.i("Doorbell", "Failed to set wireless chime $errorCode $errorMsg")
+          }
+        })
+      }
+    }
   }
 
   suspend fun removeDoorbell(

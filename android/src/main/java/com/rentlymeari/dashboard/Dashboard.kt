@@ -1,17 +1,8 @@
 package com.rentlymeari.dashboard
 
-import android.content.ContentValues
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.net.Uri
-import android.os.Environment
-import android.provider.MediaStore
-import android.util.Log
-import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,7 +45,6 @@ import com.rentlymeari.components.LoadingIndicator
 import com.rentlymeari.meari.Meari
 import com.rentlymeari.ui.theme.LocalColor
 import kotlinx.coroutines.launch
-import java.io.OutputStream
 
 @Composable
 fun Dashboard(
@@ -68,57 +58,39 @@ fun Dashboard(
       .fillMaxSize()
       .then(modifier)
   ) {
-
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
 
-    val isOnline = remember {
-      mutableStateOf(MeariIotController.isConnected)
-    }
-
-    val isMicOn = remember {
-      mutableStateOf(false)
-    }
-
-    val previewLoader = remember {
-      mutableStateOf(true)
-    }
-
-    val isLoading = remember {
-      mutableStateOf(false)
-    }
-
-    val videoType = remember {
-      mutableIntStateOf(1)
-    }
+    val isOnline = remember { mutableStateOf(MeariIotController.isConnected) }
+    val isMicOn = remember { mutableStateOf(false) }
+    val previewLoader = remember { mutableStateOf(true) }
+    val isLoading = remember { mutableStateOf(false) }
+    val videoType = remember { mutableIntStateOf(1) }
 
     val videoSurfaceView = remember {
       PPSGLSurfaceView(
         context,
         configuration.screenWidthDp,
         configuration.screenHeightDp
-      ).apply {
-        keepScreenOn = true
-      }
+      ).apply { keepScreenOn = true }
     }
 
     LaunchedEffect(cameraInfo.value) {
-      if (cameraInfo.value != null) {
+      cameraInfo.value?.let {
         Meari.connectAndStartPreview(
           isOnline = isOnline,
           isLoading = previewLoader,
           controller = MeariDeviceController(),
-          cameraInfo = cameraInfo.value!!,
+          cameraInfo = it,
           videoSurfaceView = videoSurfaceView,
           videoType = videoType
         )
-        cameraInfo.value!!.deviceParams = Meari.getDeviceParams()
+        it.deviceParams = Meari.getDeviceParams()
       }
     }
 
     Preview(
       previewLoader = previewLoader,
-      isLoading = isLoading,
       isOnline = isOnline,
       videoSurfaceView = videoSurfaceView,
       videoType = videoType,
@@ -135,11 +107,8 @@ fun Dashboard(
     )
 
     BottomNavigationBar(
-      context = context,
-      cameraInfo = cameraInfo.value,
       navController = navController,
       isMuted = isMuted,
-      screenShotView = videoSurfaceView
     )
   }
 }
@@ -149,7 +118,6 @@ fun ColumnScope.Preview(
   cameraInfo: MutableState<CameraInfo?>,
   videoType: MutableState<Int>,
   previewLoader: MutableState<Boolean>,
-  isLoading: MutableState<Boolean>,
   isOnline: MutableState<Boolean>,
   videoSurfaceView: PPSGLSurfaceView
 ) {
@@ -157,19 +125,20 @@ fun ColumnScope.Preview(
 
   fun reConnect() {
     scope.launch {
-      if (cameraInfo.value != null) {
+      cameraInfo.value?.let {
         Meari.connectAndStartPreview(
           isOnline = isOnline,
           isLoading = previewLoader,
           controller = MeariDeviceController(),
-          cameraInfo = cameraInfo.value!!,
+          cameraInfo = it,
           videoSurfaceView = videoSurfaceView,
           videoType = videoType
         )
-        cameraInfo.value!!.deviceParams = Meari.getDeviceParams()
+        it.deviceParams = Meari.getDeviceParams()
       }
     }
   }
+
   Row(
     modifier = Modifier
       .fillMaxSize()
@@ -178,30 +147,23 @@ fun ColumnScope.Preview(
     horizontalArrangement = Arrangement.Center,
     verticalAlignment = Alignment.CenterVertically
   ) {
-    if (previewLoader.value) {
-      LoadingIndicator()
-    } else if (!isOnline.value) {
-      OfflineScreen(
-        onReConnect = { reConnect() }
-      )
-    } else {
-      Box(
+    when {
+      previewLoader.value -> LoadingIndicator()
+      !isOnline.value -> OfflineScreen(onReConnect = { reConnect() })
+      else -> Box(
         modifier = Modifier
           .fillMaxWidth()
           .fillMaxHeight(0.4f)
       ) {
         AndroidView(
           factory = { context ->
-            val linearLayout = LinearLayout(context)
-
-            if (videoSurfaceView.parent != null)
-              (videoSurfaceView.parent as ViewGroup).removeView(videoSurfaceView)
-
-            linearLayout.addView(
-              videoSurfaceView
-            )
-            linearLayout
-          },
+            LinearLayout(context).apply {
+              if (videoSurfaceView.parent != null) {
+                (videoSurfaceView.parent as ViewGroup).removeView(videoSurfaceView)
+              }
+              addView(videoSurfaceView)
+            }
+          }
         )
       }
     }
@@ -229,6 +191,7 @@ fun ColumnScope.DoorbellControls(
         .align(Alignment.CenterStart)
         .padding(start = 25.dp)
     ) {
+
       Button(
         modifier = Modifier
           .width(68.dp)
@@ -241,13 +204,9 @@ fun ColumnScope.DoorbellControls(
         textColor = LocalColor.Monochrome.White,
         cornerRadius = 20.dp,
         onClick = {
-          if (cameraInfo != null) {
+          cameraInfo?.let {
             Meari.changeResolution(
-              videoId = if (videoType.value == 0) {
-                1
-              } else {
-                0
-              },
+              videoId = if (videoType.value == 0) 1 else 0,
               videoType = videoType,
               isLoading = isLoading,
               videoSurfaceView = videoSurfaceView
@@ -257,33 +216,32 @@ fun ColumnScope.DoorbellControls(
       )
     }
 
+    val mainButtonModifier = Modifier
+      .width(180.dp)
+      .height(60.dp)
+      .align(Alignment.Center)
+
     Button(
-      modifier = Modifier
-        .width(180.dp)
-        .height(60.dp)
-        .align(Alignment.Center),
+      modifier = mainButtonModifier,
       id = "tapToSpeak/Mute",
-      title = if (isMicOn.value) {
-        "Tap to mute"
-      } else {
-        "Tap to speak"
-      },
+      title = if (isMicOn.value) "Tap to mute" else "Tap to speak",
       grey = !isMicOn.value,
       medium = isMicOn.value,
       semiBold = true,
       textColor = LocalColor.Monochrome.White,
       cornerRadius = 40.dp,
       onClick = {
-        if (cameraInfo != null) {
+        cameraInfo?.let {
           if (isMicOn.value) {
             Meari.stopVoiceTalk(
               isMicOn = isMicOn,
               isLoading = isLoading
             )
           } else {
+            // TODO:: handle for all android versions
             Meari.startVoiceTalk(
               context = context,
-              cameraInfo = cameraInfo,
+              cameraInfo = it,
               isMicOn = isMicOn,
               isLoading = isLoading
             )
@@ -296,9 +254,6 @@ fun ColumnScope.DoorbellControls(
 
 @Composable
 fun ColumnScope.BottomNavigationBar(
-  context: Context,
-  cameraInfo: CameraInfo?,
-  screenShotView: View,
   navController: NavController,
   isMuted: MutableState<Boolean>
 ) {
@@ -310,7 +265,6 @@ fun ColumnScope.BottomNavigationBar(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceEvenly
   ) {
-
     SettingsButton(
       modifier = if (!isMuted.value) {
         Modifier.background(LocalColor.Primary.Dark)
@@ -323,45 +277,23 @@ fun ColumnScope.BottomNavigationBar(
         R.drawable.ic_sound_on
       }
     ) {
-      if (isMuted.value) {
-        Meari.setMute(
-          false,
-          isMuted
-        )
-      } else {
-        Meari.setMute(
-          true,
-          isMuted
-        )
-      }
+      Meari.setMute(!isMuted.value, isMuted)
     }
 
-    SettingsButton(
-      imageId = R.drawable.ic_camera
-    ) {
-      val bitmap = takeScreenshot(view = screenShotView)
-
-      if (bitmap != null) {
-        saveMediaToStorage(bitmap = bitmap, context = context)
-      }
-
+    SettingsButton(imageId = R.drawable.ic_camera) {
+      Meari.screenShot()
     }
 
-    SettingsButton(
-      imageId = R.drawable.ic_record
-    ) {
-
+    SettingsButton(imageId = R.drawable.ic_record) {
+      Meari.startRecording()
+      // Meari.stopRecording()
     }
 
-    SettingsButton(
-      imageId = R.drawable.ic_play_back
-    ) {
+    SettingsButton(imageId = R.drawable.ic_play_back) {
       navController.navigate("Playback")
     }
 
-    SettingsButton(
-      imageId = R.drawable.ic_message
-    ) {
+    SettingsButton(imageId = R.drawable.ic_message) {
       navController.navigate("Messages")
     }
   }
@@ -379,53 +311,9 @@ fun SettingsButton(
       .clip(RoundedCornerShape(70.dp))
       .size(50.dp)
       .then(modifier)
-      .clickable {
-        onClick()
-      }
+      .clickable { onClick() }
       .padding(10.dp),
     painter = painterResource(id = imageId),
-    contentDescription = "settingsIcon",
+    contentDescription = "settingsIcon"
   )
-}
-
-private fun takeScreenshot(view: View): Bitmap? {
-  var screenshot: Bitmap? = null
-  try {
-    screenshot =
-      Bitmap.createBitmap(view.measuredWidth, view.measuredHeight, Bitmap.Config.ARGB_8888)
-
-
-    val canvas = Canvas(screenshot)
-    view.draw(canvas)
-  } catch (e: Exception) {
-    Log.e("Error", "Failed to capture screenshot because:" + e.message)
-  }
-  return screenshot
-}
-
-private fun saveMediaToStorage(bitmap: Bitmap, context: Context) {
-
-  val filename = "${System.currentTimeMillis()}.jpg"
-
-  var fos: OutputStream? = null
-
-  context.contentResolver?.also { resolver ->
-
-    val contentValues = ContentValues().apply {
-
-      // Putting file information in content values
-      put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-      put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-      put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-    }
-
-    val imageUri: Uri? =
-      resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-    fos = imageUri?.let { resolver.openOutputStream(it) }
-  }
-
-  fos?.use {
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-    Toast.makeText(context, "Captured View and saved to Gallery", Toast.LENGTH_SHORT).show()
-  }
 }
