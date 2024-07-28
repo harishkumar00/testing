@@ -81,7 +81,7 @@ fun StorageSettings() {
         .background(LocalColor.Monochrome.White)
     ) {
 
-      Heading(title = "Storage Capacity")
+      Heading(title = "STORAGE CAPACITY")
 
       sdCardInfo.value.let { info ->
         info.sdCapacity?.let {
@@ -97,7 +97,7 @@ fun StorageSettings() {
         }
       }
 
-      Row (
+      Row(
         modifier = Modifier
           .fillMaxWidth()
           .background(LocalColor.Secondary.White)

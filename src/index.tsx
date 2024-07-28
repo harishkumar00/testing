@@ -9,13 +9,13 @@ const LINKING_ERROR =
 const RentlyMeari = NativeModules.RentlyMeari
   ? NativeModules.RentlyMeari
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 export type StartPreviewType = {
   deviceId: string;
@@ -24,3 +24,20 @@ export type StartPreviewType = {
 export function startActivity(params: StartPreviewType): Promise<string> {
   return RentlyMeari.openLivePreview(params);
 }
+
+export type loginType = {
+  account: string;
+  password: string;
+  countryCode: string;
+  phoneCode: string;
+};
+
+export function login(params: loginType): Promise<string> {
+  return RentlyMeari.login(params);
+}
+
+export const getTokenForQRCode = async (): Promise<any> => {
+  const data = await RentlyMeari.getTokenForQRCode();
+
+  return data;
+};

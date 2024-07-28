@@ -40,6 +40,7 @@ fun Label(
   xl200: Boolean = false,
   // Color
   primary: Boolean = false,
+  secondary: Boolean = false,
   lightGrey: Boolean = false,
   grey: Boolean = false,
   white: Boolean = false,
@@ -72,6 +73,7 @@ fun Label(
 
   val color = when {
     primary -> LocalColor.Primary.Light
+    secondary -> LocalColor.Primary.Secondary
     lightGrey -> LocalColor.Monochrome.Regular
     grey -> LocalColor.Monochrome.Medium
     white -> LocalColor.Monochrome.White

@@ -49,11 +49,7 @@ object PermissionHandler {
 
   fun requestPermission(activity: Activity, permission: String, requestCode: Int) {
     try {
-      if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
-        ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
-      } else {
-        ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
-      }
+      ActivityCompat.requestPermissions(activity, arrayOf(permission), requestCode)
     } catch (e: Exception) {
       e.printStackTrace()
     }

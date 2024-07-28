@@ -1,6 +1,8 @@
 package com.rentlymeari.dashboard
 
+import android.Manifest
 import android.content.Context
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.compose.foundation.Image
@@ -35,15 +37,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import com.meari.sdk.MeariDeviceController
 import com.meari.sdk.MeariIotController
 import com.meari.sdk.bean.CameraInfo
 import com.ppstrong.ppsplayer.PPSGLSurfaceView
 import com.rentlymeari.R
 import com.rentlymeari.components.Button
 import com.rentlymeari.components.LoadingIndicator
+import com.rentlymeari.components.PermissionAlert
+import com.rentlymeari.components.SuccessAlert
 import com.rentlymeari.meari.Meari
+import com.rentlymeari.meari.ScreenCapture
 import com.rentlymeari.ui.theme.LocalColor
+import com.rentlymeari.util.PermissionHandler
 import kotlinx.coroutines.launch
 
 @Composable
@@ -66,6 +71,13 @@ fun Dashboard(
     val previewLoader = remember { mutableStateOf(true) }
     val isLoading = remember { mutableStateOf(false) }
     val videoType = remember { mutableIntStateOf(1) }
+    val isPermissionDisclaimerAlertVisible = remember { mutableStateOf(false) }
+    val isScreenShotSuccess = remember { mutableStateOf(false) }
+    val isRecordingSuccess = remember { mutableStateOf(false) }
+
+    val permissions = arrayOf(
+      Manifest.permission.RECORD_AUDIO,
+    )
 
     val videoSurfaceView = remember {
       PPSGLSurfaceView(
@@ -75,17 +87,35 @@ fun Dashboard(
       ).apply { keepScreenOn = true }
     }
 
+    PermissionAlert(
+      context = context,
+      permissions = permissions,
+      isPermissionDisclaimerAlertVisible = isPermissionDisclaimerAlertVisible
+    )
+
+    SuccessAlert(
+      title = "Success",
+      description = "A video has been saved to your photo gallery.",
+      isVisible = isRecordingSuccess
+    )
+
+    SuccessAlert(
+      title = "Success",
+      description = "A screenshot has been saved to your photo gallery.",
+      isVisible = isScreenShotSuccess
+    )
+
     LaunchedEffect(cameraInfo.value) {
       cameraInfo.value?.let {
         Meari.connectAndStartPreview(
           isOnline = isOnline,
           isLoading = previewLoader,
-          controller = MeariDeviceController(),
           cameraInfo = it,
           videoSurfaceView = videoSurfaceView,
           videoType = videoType
         )
         it.deviceParams = Meari.getDeviceParams()
+        Meari.setMute(false, isMuted)
       }
     }
 
@@ -100,15 +130,19 @@ fun Dashboard(
     DoorbellControls(
       context = context,
       cameraInfo = cameraInfo.value,
+      permissions = permissions,
       videoType = videoType,
       videoSurfaceView = videoSurfaceView,
       isMicOn = isMicOn,
-      isLoading = isLoading
+      isLoading = isLoading,
+      isPermissionDisclaimerAlertVisible = isPermissionDisclaimerAlertVisible,
     )
 
     BottomNavigationBar(
       navController = navController,
       isMuted = isMuted,
+      isRecordingSuccess = isRecordingSuccess,
+      isScreenShotSuccess = isScreenShotSuccess
     )
   }
 }
@@ -129,7 +163,6 @@ fun ColumnScope.Preview(
         Meari.connectAndStartPreview(
           isOnline = isOnline,
           isLoading = previewLoader,
-          controller = MeariDeviceController(),
           cameraInfo = it,
           videoSurfaceView = videoSurfaceView,
           videoType = videoType
@@ -174,11 +207,14 @@ fun ColumnScope.Preview(
 fun ColumnScope.DoorbellControls(
   context: Context,
   cameraInfo: CameraInfo?,
+  permissions: Array<String>,
   videoSurfaceView: PPSGLSurfaceView,
   videoType: MutableState<Int>,
   isMicOn: MutableState<Boolean>,
-  isLoading: MutableState<Boolean>
+  isLoading: MutableState<Boolean>,
+  isPermissionDisclaimerAlertVisible: MutableState<Boolean>
 ) {
+
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -195,7 +231,7 @@ fun ColumnScope.DoorbellControls(
       Button(
         modifier = Modifier
           .width(68.dp)
-          .height(35.dp),
+          .height(33.dp),
         id = "hd/sd",
         title = if (videoType.value == 1) "SD" else "HD",
         s = true,
@@ -231,21 +267,24 @@ fun ColumnScope.DoorbellControls(
       textColor = LocalColor.Monochrome.White,
       cornerRadius = 40.dp,
       onClick = {
-        cameraInfo?.let {
-          if (isMicOn.value) {
-            Meari.stopVoiceTalk(
-              isMicOn = isMicOn,
-              isLoading = isLoading
-            )
-          } else {
-            // TODO:: handle for all android versions
-            Meari.startVoiceTalk(
-              context = context,
-              cameraInfo = it,
-              isMicOn = isMicOn,
-              isLoading = isLoading
-            )
+        if (PermissionHandler.arePermissionsGranted(context, permissions)) {
+          cameraInfo?.let {
+            if (isMicOn.value) {
+              Meari.stopVoiceTalk(
+                isMicOn = isMicOn,
+                isLoading = isLoading
+              )
+            } else {
+              Meari.startVoiceTalk(
+                context = context,
+                cameraInfo = it,
+                isMicOn = isMicOn,
+                isLoading = isLoading
+              )
+            }
           }
+        } else {
+          isPermissionDisclaimerAlertVisible.value = true
         }
       }
     )
@@ -255,8 +294,18 @@ fun ColumnScope.DoorbellControls(
 @Composable
 fun ColumnScope.BottomNavigationBar(
   navController: NavController,
-  isMuted: MutableState<Boolean>
+  isMuted: MutableState<Boolean>,
+  isScreenShotSuccess: MutableState<Boolean>,
+  isRecordingSuccess: MutableState<Boolean>
 ) {
+
+  val context = LocalContext.current
+  val scope = rememberCoroutineScope()
+
+  val isRecording = remember {
+    mutableStateOf(false)
+  }
+
   Row(
     modifier = Modifier
       .fillMaxSize()
@@ -281,12 +330,39 @@ fun ColumnScope.BottomNavigationBar(
     }
 
     SettingsButton(imageId = R.drawable.ic_camera) {
-      Meari.screenShot()
+      scope.launch {
+        val status = ScreenCapture.screenShot(
+          context = context
+        )
+        if (status) {
+          isScreenShotSuccess.value = true
+        }
+      }
     }
 
-    SettingsButton(imageId = R.drawable.ic_record) {
-      Meari.startRecording()
-      // Meari.stopRecording()
+    SettingsButton(
+      if (isRecording.value) {
+        Modifier.background(LocalColor.Danger.Primary)
+      } else {
+        Modifier
+      },
+      imageId = R.drawable.ic_record
+    ) {
+      if (!isRecording.value) {
+        ScreenCapture.startRecording(
+          context = context,
+          isRecording = isRecording
+        )
+      } else {
+        scope.launch {
+          val status = ScreenCapture.stopRecording(
+            isRecording = isRecording
+          )
+          if (status) {
+            isRecordingSuccess.value = true
+          }
+        }
+      }
     }
 
     SettingsButton(imageId = R.drawable.ic_play_back) {

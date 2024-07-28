@@ -6,6 +6,7 @@ object LocalColor {
 
   object Primary {
     val Light = Color(0xFF39a1e8)
+    val Secondary = Color(0xFF6a97b5)
     val Dark = Color(0xFF329ddc)
     val Medium = Color(0xFF008adc)
   }
@@ -13,6 +14,10 @@ object LocalColor {
   object Secondary {
     val White = Color(0xFFf3faff)
     val Light = Color(0xFFd9edfb)
+  }
+
+  object Danger {
+    val Primary = Color(0xFFcb0000)
   }
 
   object Monochrome {

@@ -27,6 +27,7 @@ import com.rentlymeari.ui.theme.LocalColor
 @Composable
 fun LoadingIndicator(
   modifier: Modifier = Modifier,
+  title: String = "Loading..",
   color: Color = LocalColor.Primary.Dark,
   size: Dp = 4.dp
 ) {
@@ -63,7 +64,7 @@ fun LoadingIndicator(
           strokeWidth = size
         )
         Label(
-          title = "Loading..",
+          title = title,
           semiBold = true,
           black = true
         )

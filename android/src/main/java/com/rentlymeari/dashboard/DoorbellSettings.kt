@@ -15,15 +15,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,17 +32,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.meari.sdk.bean.CameraInfo
 import com.rentlymeari.R
-import com.rentlymeari.components.Alert
-import com.rentlymeari.components.AnchorButton
 import com.rentlymeari.components.Button
 import com.rentlymeari.components.Divider
 import com.rentlymeari.components.Label
 import com.rentlymeari.components.LoadingIndicator
+import com.rentlymeari.components.ResetWifiAlert
 import com.rentlymeari.components.Switch
 import com.rentlymeari.meari.Meari
 import com.rentlymeari.meari.SDCard
 import com.rentlymeari.meari.Settings
 import com.rentlymeari.ui.theme.LocalColor
+import kotlinx.coroutines.launch
 
 enum class MotionSensitivityLevel(val level: String) {
   LOW("Low"),
@@ -87,8 +88,10 @@ fun DoorbellSettings(
   val isResetWifiAlertVisible = remember { mutableStateOf(false) }
   val isLoading = remember { mutableStateOf(false) }
 
+  val scope = rememberCoroutineScope()
+
   Log.i(
-    "Camera Info", """
+    "Doorbell", """
         Power Type: ${cameraInfo?.deviceParams?.powerType}
         Battery Percent: ${cameraInfo?.deviceParams?.batteryPercent}
         Battery Remaining: ${cameraInfo?.deviceParams?.batteryRemaining}
@@ -96,80 +99,22 @@ fun DoorbellSettings(
     """.trimIndent()
   )
 
-  Log.i("Harish power type", isPowerType.value.toString())
-
-  Log.i("Harish wireless chime", isWirelessChimeEnabled.value.toString())
-  Log.i("Harish mechanical chime", isMechanicalChimeEnabled.value.toString())
 
   if (isLoading.value) {
     LoadingIndicator()
   }
 
-  Alert(
-    modifier = Modifier
-      .padding(top = 20.dp, start = 20.dp, end = 15.dp),
-    isVisible = isResetWifiAlertVisible,
-  ) {
-
-    Label(
-      modifier = Modifier
-        .padding(bottom = 5.dp),
-      title = "Reset WiFi",
-      bold = true,
-      xl20 = true,
-      black = true
-    )
-
-    Label(
-      modifier = Modifier
-        .padding(vertical = 5.dp),
-      title = "Please go to Manage tab > Add Doorbell then follow the reset instruction video to re-add your doorbell.",
-      medium = true,
-      l = true,
-      black = true,
-      maxLines = 6,
-      lineHeight = 18.sp
-    )
-
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 5.dp),
-      horizontalArrangement = Arrangement.End
-    ) {
-      AnchorButton(
-        modifier = Modifier,
-        id = "cancel",
-        title = "CANCEL",
-        semiBold = true,
-        black = true,
-        m = true,
-        onClick = {
-          isResetWifiAlertVisible.value = false
-        }
-      )
-
-      AnchorButton(
-        modifier = Modifier,
-        id = "resetWifi",
-        title = "RESET WIFI",
-        semiBold = true,
-        black = true,
-        m = true,
-        onClick = {
-          // TODO:: Reset WiFi
-        }
-      )
-    }
-  }
+  ResetWifiAlert(
+    isResetWifiAlertVisible = isResetWifiAlertVisible,
+    isLoading = isLoading
+  )
 
   when {
     isAdvancedSettings.value -> AdvancedSettings(cameraInfo = cameraInfo)
     isStorageSettings.value -> StorageSettings()
     else -> {
       LazyColumn(
-        modifier = Modifier
-          .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
       ) {
         item {
           Heading(title = "Basic Settings")
@@ -245,7 +190,6 @@ fun DoorbellSettings(
             withSwitch = true,
             checked = isMotionDetectionEnabled.value,
             onToggle = {
-              Log.i("Harish", cameraInfo.toString())
               if (cameraInfo != null) {
                 Settings.setMotionEnable(
                   enable = if (it) 1 else 0,
@@ -323,12 +267,7 @@ fun DoorbellSettings(
             }
           )
         }
-        item {
-          SettingsItem(
-            title = "SD Card Recording",
-            withSwitch = true
-          )
-        }
+
         item {
           SettingsItem(
             title = "Recording Mode",
@@ -417,7 +356,7 @@ fun DoorbellSettings(
               Log.i("Doorbell new mode", newMode.toString())
 
               if (cameraInfo != null) {
-                Meari.changeChime(
+                Settings.changeChime(
                   newMode = newMode,
                   isWirelessChimeEnabled = isWirelessChimeEnabled,
                   isMechanicalChimeEnabled = isMechanicalChimeEnabled,
@@ -438,6 +377,34 @@ fun DoorbellSettings(
               isAdvancedSettings.value = true
             }
           )
+        }
+
+        item {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(top = 15.dp, bottom = 30.dp),
+            horizontalArrangement = Arrangement.Center
+          ) {
+            Button(
+              modifier = Modifier
+                .width(180.dp)
+                .height(50.dp),
+              id = "removeDoorbell",
+              title = "Remove Doorbell",
+              textColor = LocalColor.Monochrome.White,
+              secondary = true,
+              semiBold = true
+            ) {
+              if (cameraInfo != null) {
+                scope.launch {
+                  Meari.removeDoorbell(
+                    cameraInfo = cameraInfo
+                  )
+                }
+              }
+            }
+          }
         }
       }
     }

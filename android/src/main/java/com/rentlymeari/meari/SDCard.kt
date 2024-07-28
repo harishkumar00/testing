@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import com.meari.sdk.MeariUser
 import com.meari.sdk.bean.SDCardInfo
 import com.meari.sdk.callback.ISDCardFormatCallback
+import com.meari.sdk.callback.ISDCardFormatPercentCallback
 import com.meari.sdk.callback.ISDCardInfoCallback
 import com.meari.sdk.callback.ISetDeviceParamsCallback
 
@@ -17,11 +18,13 @@ object SDCard {
     isLoading.value = true
     MeariUser.getInstance().getSDCardInfo(object : ISDCardInfoCallback {
       override fun onSuccess(sdCardInfo: SDCardInfo) {
+        Log.i("Doorbell", "Get SD Card Info success: $sdCardInfo")
         info.value = sdCardInfo
         isLoading.value = false
       }
 
       override fun onFailed(errorCode: Int, errorMsg: String) {
+        Log.i("Doorbell", "Get SD Card Info failed: $errorCode $errorMsg")
         isLoading.value = false
       }
     })
@@ -46,7 +49,7 @@ object SDCard {
 
           override fun onFailed(errorCode: Int, errorMsg: String) {
             isLoading.value = false
-            Log.i("Doorbell", "Set Playback Record Video failure $errorCode $errorMsg")
+            Log.i("Doorbell", "Set Playback Record Video failure: $errorCode $errorMsg")
           }
         })
     }
@@ -59,7 +62,19 @@ object SDCard {
       }
 
       override fun onFailed(errorCode: Int, errorMsg: String) {
-        Log.i("Doorbell", "Format SD Card failed $errorCode $errorMsg")
+        Log.i("Doorbell", "Format SD Card failed: $errorCode $errorMsg")
+      }
+    })
+  }
+
+  fun getSDCardFormatPercentage() {
+    MeariUser.getInstance().getSDCardFormatPercent(object : ISDCardFormatPercentCallback {
+      override fun onSuccess(percent: Int) {
+        Log.i("Doorbell", "SD Card format percentage: $percent")
+      }
+
+      override fun onFailed(errorCode: Int, errorMsg: String) {
+        Log.i("Doorbell", "SD Card format error: $errorCode $errorMsg")
       }
     })
   }
