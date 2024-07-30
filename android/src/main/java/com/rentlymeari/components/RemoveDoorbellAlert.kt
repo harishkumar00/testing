@@ -81,7 +81,8 @@ fun RemoveDoorbellAlert(
         onClick = {
           scope.launch {
             val success = Meari.removeDoorbell(
-              cameraInfo = cameraInfo
+              cameraInfo = cameraInfo,
+              isLoading = isLoading
             )
             if (!MeariUser.getInstance().controller.isConnected || success == true) {
               activity.finish()
