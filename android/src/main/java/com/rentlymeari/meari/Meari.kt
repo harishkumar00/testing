@@ -363,20 +363,24 @@ object Meari {
 
   suspend fun removeDoorbell(
     cameraInfo: CameraInfo?,
+    isLoading: MutableState<Boolean>
   ): Boolean? =
     suspendCancellableCoroutine { continuation ->
       cameraInfo?.let {
+        isLoading.value = true
         MeariUser.getInstance()
           .deleteDevice(
             cameraInfo.deviceID,
             cameraInfo.devTypeID,
             object : IResultCallback {
               override fun onError(p0: Int, p1: String?) {
+                isLoading.value = false
                 continuation.resume(false)
                 Log.i("Doorbell", "Failed in Remove Doorbell: $p0 $p1")
               }
 
               override fun onSuccess() {
+                isLoading.value = false
                 continuation.resume(true)
                 Log.i("Doorbell", "Doorbell Remove Success")
               }
