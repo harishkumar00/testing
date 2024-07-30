@@ -1,9 +1,12 @@
 package com.rentlymeari
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.meari.sdk.BuildConfig
@@ -15,43 +18,66 @@ import com.rentlymeari.dashboard.NavController
 import com.rentlymeari.meari.Meari
 import com.rentlymeari.meari.MeariMQTTCallback
 import com.rentlymeari.ui.theme.MeariTheme
-import kotlinx.coroutines.delay
 
 class MeariActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    appContext = this.applicationContext
 
+    initializeMeariSdk()
+    connectMeariMqtt() // Connect Meari MQTT service
+
+    val deviceId = intent.getStringExtra("deviceId")
+
+    setContent {
+      val cameraInfo = remember { mutableStateOf<CameraInfo?>(null) }
+
+      LaunchedEffect(Unit) {
+        fetchCameraInfo(deviceId = deviceId, cameraInfo = cameraInfo)
+      }
+
+      MeariTheme {
+        NavController(cameraInfo = cameraInfo)
+      }
+    }
+  }
+
+  private fun initializeMeariSdk() {
     MeariSdk.init(this, MeariMQTTCallback())
     if (BuildConfig.DEBUG) {
       meariLog.createlibrarylog()
       meariLog.getInstance().setlevel(0)
       MeariSdk.getInstance().isDebug = true
     }
+  }
 
-    // Connect Meari MQTT service
-    MeariUser.getInstance().connectMqttServer(application)
+  private fun connectMeariMqtt() {
+    try {
+      MeariUser.getInstance().connectMqttServer(application)
+    } catch (e: Exception) {
+      Log.e("MeariActivity", "Error connecting to MQTT server: ${e.message}")
+    }
+  }
 
-    val deviceId = intent.getStringExtra("deviceId")
+  private suspend fun fetchCameraInfo(deviceId: String?, cameraInfo: MutableState<CameraInfo?>) {
+    if (deviceId == null) {
+      Log.i("Doorbell", "MeariActivity: Device ID is null")
+      return
+    }
 
-    setContent {
+    try {
+      val doorbells = Meari.loginAndFetchDoorbells()
+      cameraInfo.value = doorbells?.doorBells?.find { it.deviceID == deviceId }
+    } catch (e: Exception) {
+      Log.e("Doorbell", "MeariActivity: Error fetching camera info: ${e.message}")
+    }
+  }
 
-      val cameraInfo = remember {
-        mutableStateOf<CameraInfo?>(null)
-      }
+  companion object {
+    private var appContext: Context? = null
 
-      LaunchedEffect(Unit) {
-        val doorbells = Meari.loginAndFetchDoorbells()
-        delay(10000) // TODO: remove this
-        cameraInfo.value = doorbells?.doorBells?.find {
-          it.deviceID == deviceId
-        }
-      }
-
-      MeariTheme {
-        NavController(
-          cameraInfo = cameraInfo
-        )
-      }
+    fun getAppContext(): Context? {
+      return appContext
     }
   }
 }
