@@ -237,6 +237,7 @@ fun ColumnScope.DoorbellControls(
         s = true,
         semiBold = true,
         grey = true,
+        disabled = isLoading.value,
         textColor = LocalColor.Monochrome.White,
         cornerRadius = 20.dp,
         onClick = {
@@ -264,6 +265,7 @@ fun ColumnScope.DoorbellControls(
       grey = !isMicOn.value,
       medium = isMicOn.value,
       semiBold = true,
+      disabled = isLoading.value,
       textColor = LocalColor.Monochrome.White,
       cornerRadius = 40.dp,
       onClick = {

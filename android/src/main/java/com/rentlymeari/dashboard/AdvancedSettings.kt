@@ -97,6 +97,7 @@ fun StorageSettings() {
         }
       }
 
+      // TODO:: Add Disable button and loading screen while formating.
       Row(
         modifier = Modifier
           .fillMaxWidth()
