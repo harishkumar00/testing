@@ -36,6 +36,7 @@ import com.rentlymeari.components.Button
 import com.rentlymeari.components.Divider
 import com.rentlymeari.components.Label
 import com.rentlymeari.components.LoadingIndicator
+import com.rentlymeari.components.RemoveDoorbellAlert
 import com.rentlymeari.components.ResetWifiAlert
 import com.rentlymeari.components.Switch
 import com.rentlymeari.meari.Meari
@@ -86,6 +87,7 @@ fun DoorbellSettings(
     remember { mutableStateOf(cameraInfo?.deviceParams?.mechanicalChimeEnable) }
   val isPowerType = remember { mutableStateOf(cameraInfo?.deviceParams?.powerType) }
   val isResetWifiAlertVisible = remember { mutableStateOf(false) }
+  val isRemoveDoorbellAlertVisible = remember { mutableStateOf(false) }
   val isLoading = remember { mutableStateOf(false) }
 
   val scope = rememberCoroutineScope()
@@ -108,6 +110,14 @@ fun DoorbellSettings(
     isResetWifiAlertVisible = isResetWifiAlertVisible,
     isLoading = isLoading
   )
+
+  if (cameraInfo != null) {
+    RemoveDoorbellAlert(
+      isRemoveDoorbellAlertVisible = isRemoveDoorbellAlertVisible,
+      isLoading = isLoading,
+      cameraInfo = cameraInfo
+    )
+  }
 
   when {
     isAdvancedSettings.value -> AdvancedSettings(cameraInfo = cameraInfo)
@@ -379,6 +389,7 @@ fun DoorbellSettings(
           )
         }
 
+        // TODO:: Add loader and disable button while removing doorbell.
         item {
           Row(
             modifier = Modifier
@@ -397,11 +408,7 @@ fun DoorbellSettings(
               semiBold = true
             ) {
               if (cameraInfo != null) {
-                scope.launch {
-                  Meari.removeDoorbell(
-                    cameraInfo = cameraInfo
-                  )
-                }
+                isRemoveDoorbellAlertVisible.value = true
               }
             }
           }
