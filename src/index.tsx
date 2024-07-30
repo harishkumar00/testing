@@ -17,14 +17,6 @@ const RentlyMeari = NativeModules.RentlyMeari
       }
     );
 
-export type StartPreviewType = {
-  deviceId: string;
-};
-
-export function startActivity(params: StartPreviewType): Promise<string> {
-  return RentlyMeari.openLivePreview(params);
-}
-
 export type loginType = {
   account: string;
   password: string;
@@ -32,12 +24,34 @@ export type loginType = {
   phoneCode: string;
 };
 
-export function login(params: loginType): Promise<string> {
-  return RentlyMeari.login(params);
-}
+export const login = async (params: loginType): Promise<any> => {
+  const data = await RentlyMeari.login(params);
+
+  return data;
+};
+
+export type StartPreviewType = {
+  deviceId: string;
+};
+
+export const startActivity = (params: StartPreviewType): Promise<any> => {
+  return RentlyMeari.openLivePreview(params);
+};
 
 export const getTokenForQRCode = async (): Promise<any> => {
   const data = await RentlyMeari.getTokenForQRCode();
+
+  return data;
+};
+
+export type setupPushNotificationType = {
+  token: string;
+};
+
+export const setupPushNotification = async (
+  params: setupPushNotificationType
+): Promise<any> => {
+  const data = await RentlyMeari.setupPushNotification(params);
 
   return data;
 };

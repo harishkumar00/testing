@@ -23,15 +23,20 @@ class RentlyMeariModule(private val reactContext: ReactApplicationContext) :
   private val scope = CoroutineScope(Dispatchers.IO)
 
   @ReactMethod
-  fun openLivePreview(params: ReadableMap) {
+  fun openLivePreview(params: ReadableMap, promise: Promise) {
+    try {
+      val intent = Intent(reactContext, MeariActivity::class.java)
+      promise.resolve(true)
 
-    val intent = Intent(reactContext, MeariActivity::class.java)
+      if (intent.resolveActivity(reactContext.packageManager) != null) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.putExtra("deviceId", params.getString("deviceId"))
 
-    if (intent.resolveActivity(reactContext.packageManager) != null) {
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      intent.putExtra("deviceId", params.getString("deviceId"))
-
-      reactContext.startActivity(intent)
+        reactContext.startActivity(intent)
+      }
+    } catch (e: Exception) {
+      promise.reject("Error", "${e.message}")
+      e.printStackTrace()
     }
   }
 
@@ -48,6 +53,26 @@ class RentlyMeariModule(private val reactContext: ReactApplicationContext) :
       }
     } catch (e: Exception) {
       promise.reject("Error", e)
+    }
+  }
+
+  @ReactMethod
+  fun setupPushNotification(params: ReadableMap, promise: Promise) {
+    try {
+      if (ReactParamsCheck.checkParams(arrayOf("token"), params)) {
+        scope.launch {
+          val success = Meari.setupPushNotification(token = params.getString("token")!!)
+          if (success == true) {
+            promise.resolve(true)
+          } else {
+            promise.reject("Error", "")
+          }
+        }
+      } else {
+        promise.reject("Error", "Invalid params")
+      }
+    } catch (e: Exception) {
+      e.printStackTrace()
     }
   }
 

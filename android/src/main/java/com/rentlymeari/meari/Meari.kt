@@ -399,4 +399,26 @@ object Meari {
       })
     }
   }
+
+  suspend fun setupPushNotification(
+    type: Int = 1,
+    token: String
+  ): Boolean? = withTimeoutOrNull(80000)  {
+    suspendCancellableCoroutine { continuation ->
+      MeariUser.getInstance().postPushToken(
+        type,
+        token,
+        object : IResultCallback {
+          override fun onError(p0: Int, p1: String?) {
+            continuation.resume(false)
+            Log.i("Doorbell", "Failed in settings Push Notification Token: $p0 $p1")
+          }
+
+          override fun onSuccess() {
+            continuation.resume(true)
+            Log.i("Doorbell", "Push Notification Token setup success")
+          }
+        })
+    }
+  }
 }

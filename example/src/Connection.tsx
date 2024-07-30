@@ -8,11 +8,16 @@ import {
   Dimensions,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { startActivity, getTokenForQRCode } from 'react-native-rently-meari';
+import {
+  startActivity,
+  setupPushNotification,
+  getTokenForQRCode,
+} from 'react-native-rently-meari';
 
 export default function Connection() {
   const [wifiName, setWifiName] = useState('rently');
   const [password, setPassword] = useState('$3cure6/1TR*nt1Y');
+  const [fcmToken, setFcmToken] = useState('');
   const [token, setToken] = useState('');
   const [imageStr, setImageStr] = useState('');
 
@@ -89,6 +94,23 @@ export default function Connection() {
           fgColor="white"
         />
       ) : null}
+
+      <TextInput
+        placeholder="FCM Token"
+        onChangeText={(value) => setFcmToken(value)}
+        value={fcmToken}
+        style={styles.textInput}
+      />
+      <TouchableOpacity
+        style={[styles.button, { marginTop: 10 }]}
+        onPress={async () => {
+          const tokenData = await setupPushNotification({ token: fcmToken });
+          console.log('Harish tok', tokenData);
+        }}
+      >
+        <Text style={styles.buttonText}>Setup FCM</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={[styles.button, { marginTop: 10 }]}
         onPress={() => {
