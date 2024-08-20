@@ -33,6 +33,10 @@
       android:name=".MeariActivity"
       android:configChanges="keyboardHidden|orientation|screenSize" />
 
+    <activity
+      android:name=".JSActivity"
+      android:configChanges="keyboardHidden|orientation|screenSize" />
+
     <!-- TODO::Replace the hardcoded keys-->
     <meta-data
       android:name="MEARI_APPKEY"

@@ -1,4 +1,5 @@
-import { NativeModules, Platform } from 'react-native';
+import { AppRegistry, NativeModules, Platform } from 'react-native';
+import Main from '../react-native/Main';
 
 const LINKING_ERROR =
   `The package 'react-native-rently-meari' doesn't seem to be linked. Make sure: \n\n` +
@@ -38,6 +39,14 @@ export const startActivity = (params: StartPreviewType): Promise<any> => {
   return RentlyMeari.openLivePreview(params);
 };
 
+export type OpenJSScreenType = {
+  name: string;
+};
+
+export const openJSScreen = (params: OpenJSScreenType): Promise<any> => {
+  return RentlyMeari.openJSScreen(params);
+};
+
 export const getTokenForQRCode = async (): Promise<any> => {
   const data = await RentlyMeari.getTokenForQRCode();
 
@@ -55,3 +64,5 @@ export const setupPushNotification = async (
 
   return data;
 };
+
+AppRegistry.registerComponent('Home', () => Main);

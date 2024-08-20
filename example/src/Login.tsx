@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import { login, startActivity } from 'react-native-rently-meari';
+import { login, startActivity, openJSScreen } from 'react-native-rently-meari';
 import Connection from './Connection';
 
 export default function App() {
@@ -74,6 +74,15 @@ export default function App() {
             }}
           >
             <Text style={styles.buttonText}>Start Meari</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 10 }]}
+            onPress={() => {
+              openJSScreen({ name: 'Harish' });
+            }}
+          >
+            <Text style={styles.buttonText}>Open JS Screen</Text>
           </TouchableOpacity>
         </View>
       )}

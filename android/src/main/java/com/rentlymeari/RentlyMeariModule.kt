@@ -12,6 +12,13 @@ import com.rentlymeari.util.ReactParamsCheck
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import android.app.Activity
+import com.facebook.react.ReactActivity
+import com.facebook.react.ReactApplication
+import com.facebook.react.ReactFragment
+import com.facebook.react.ReactInstanceManager
+import com.facebook.react.ReactNativeHost
+import com.facebook.react.ReactRootView
 
 class RentlyMeariModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -31,6 +38,25 @@ class RentlyMeariModule(private val reactContext: ReactApplicationContext) :
       if (intent.resolveActivity(reactContext.packageManager) != null) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.putExtra("deviceId", params.getString("deviceId"))
+
+        reactContext.startActivity(intent)
+      }
+    } catch (e: Exception) {
+      promise.reject("Error", "${e.message}")
+      e.printStackTrace()
+    }
+  }
+
+  @ReactMethod
+  fun openJSScreen(params: ReadableMap, promise: Promise) {
+    try {
+      Log.i("Harish", "called here")
+      val intent = Intent(reactContext, JSActivity::class.java)
+      promise.resolve(true)
+
+      if (intent.resolveActivity(reactContext.packageManager) != null) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.putExtra("name", params.getString("name"))
 
         reactContext.startActivity(intent)
       }
