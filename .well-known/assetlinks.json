@@ -1,0 +1,9 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "rocks.keyless.app.android.sapphire",
+      "sha256_cert_fingerprints":
+      ["66:EE:7B:2F:33:83:CB:3B:96:BB:E8:30:78:03:99:99:52:89:1E:1F:E9:59:58:79:BF:95:5C:C6:BF:53:9C:E4"]
+    }
+  }]
